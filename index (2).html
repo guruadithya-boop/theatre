@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Curtain Call — Theatre Tickets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#2C2C2A;
+    --ink-soft:#5F5E5A;
+    --mid:#B4B2A9;
+    --bg:#F1EFE8;
+    --card:#FFFFFF;
+    --coral:#D85A30;
+    --coral-dark:#993C1D;
+    --teal:#1D9E75;
+    --teal-dark:#0F6E56;
+    --border:#DEDBD1;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0.01em;}
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;}
+  img{max-width:100%;display:block;}
+
+  /* Header */
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 32px;background:var(--ink);color:#F1EFE8;
+    position:sticky;top:0;z-index:50;
+  }
+  .logo{font-family:'Fraunces',serif;font-size:20px;font-weight:600;
+    user-select:none;-webkit-user-select:none;cursor:default;letter-spacing:0.01em;}
+  .logo span{color:var(--coral);}
+  nav a{margin-left:24px;font-size:14px;color:#D8D6CE;transition:color .15s;}
+  nav a:hover{color:#fff;}
+
+  main{max-width:1080px;margin:0 auto;padding:40px 32px 80px;}
+
+  /* Hero */
+  .hero{
+    background:linear-gradient(180deg, rgba(44,44,42,0.0), rgba(44,44,42,0.0)), var(--ink);
+    background:var(--ink);
+    color:#F1EFE8;border-radius:14px;padding:56px 40px;margin-bottom:44px;
+  }
+  .hero h1{font-size:38px;max-width:620px;margin-bottom:14px;}
+  .hero p{color:#C9C7BE;max-width:480px;font-size:15px;}
+  .search-row{display:flex;gap:10px;margin-top:26px;flex-wrap:wrap;}
+  .search-row input, .search-row select{
+    height:40px;border-radius:8px;border:1px solid #48473f;background:#3a3a37;
+    color:#fff;padding:0 12px;font-size:14px;
+  }
+  .search-row input::placeholder{color:#a8a69d;}
+
+  section h2{font-size:22px;margin-bottom:18px;}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:20px;}
+  .show-card{
+    background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+    overflow:hidden;transition:transform .15s,box-shadow .15s;cursor:pointer;
+  }
+  .show-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,0.08);}
+  .show-card .poster{height:150px;background:var(--mid);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;}
+  .show-card .info{padding:14px 16px;}
+  .show-card .info h3{font-size:16px;margin-bottom:4px;}
+  .show-card .meta{font-size:13px;color:var(--ink-soft);margin-bottom:8px;}
+  .price-tag{display:inline-block;font-size:13px;font-weight:600;color:var(--coral-dark);}
+
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    padding:10px 20px;border-radius:8px;font-size:14px;font-weight:500;
+    transition:opacity .15s;
+  }
+  .btn:hover{opacity:.88;}
+  .btn-primary{background:var(--coral);color:#fff;}
+  .btn-secondary{background:transparent;border:1px solid var(--ink);color:var(--ink);}
+  .btn-ghost{background:transparent;color:var(--ink-soft);}
+
+  /* Overlay / modal */
+  .overlay{
+    position:fixed;inset:0;background:rgba(20,20,18,0.55);
+    display:none;align-items:flex-start;justify-content:center;
+    padding:40px 16px;overflow-y:auto;z-index:100;
+  }
+  .overlay.active{display:flex;}
+  .modal{
+    background:var(--card);border-radius:14px;max-width:640px;width:100%;
+    padding:32px;position:relative;
+  }
+  .modal.narrow{max-width:380px;}
+  .close-x{position:absolute;top:16px;right:16px;font-size:20px;color:var(--ink-soft);}
+
+  /* Seat map */
+  .stage{background:var(--mid);color:#fff;text-align:center;padding:10px;border-radius:6px;
+    font-size:12px;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:26px;}
+  .seat-grid{display:flex;flex-direction:column;gap:8px;align-items:center;margin-bottom:20px;}
+  .seat-row{display:flex;gap:8px;align-items:center;}
+  .row-label{width:18px;font-size:12px;color:var(--ink-soft);}
+  .seat{
+    width:26px;height:26px;border-radius:5px;background:var(--teal);
+    display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;
+  }
+  .seat.booked{background:var(--mid);cursor:not-allowed;}
+  .seat.selected{background:var(--coral);}
+  .seat.available{cursor:pointer;}
+  .legend{display:flex;gap:18px;justify-content:center;font-size:12px;color:var(--ink-soft);margin-bottom:24px;}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .dot{width:12px;height:12px;border-radius:3px;display:inline-block;}
+
+  .summary-row{display:flex;justify-content:space-between;font-size:14px;padding:8px 0;border-bottom:1px solid var(--border);}
+  .summary-row:last-child{border-bottom:none;font-weight:600;font-size:16px;padding-top:14px;}
+
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:13px;color:var(--ink-soft);margin-bottom:6px;}
+  .field input, .field select{
+    width:100%;height:40px;border:1px solid var(--border);border-radius:8px;padding:0 12px;font-size:14px;
+  }
+
+  .ticket{
+    border:2px dashed var(--coral);border-radius:12px;padding:24px;text-align:center;
+  }
+  .ticket .qr{width:120px;height:120px;background:var(--ink);margin:16px auto;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;}
+  .booking-id{font-family:monospace;font-size:15px;color:var(--coral-dark);}
+
+  .empty-state{text-align:center;padding:60px 20px;color:var(--ink-soft);}
+
+  /* Admin */
+  .admin-bar{background:var(--ink);color:#fff;padding:14px 32px;display:flex;justify-content:space-between;align-items:center;}
+  .admin-tabs{display:flex;gap:6px;margin-bottom:24px;flex-wrap:wrap;}
+  .admin-tab{padding:8px 16px;border-radius:8px;font-size:14px;background:var(--card);border:1px solid var(--border);}
+  .admin-tab.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:30px;}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;}
+  .stat-card .label{font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.04em;}
+  .stat-card .value{font-size:24px;font-weight:600;margin-top:6px;}
+  table{width:100%;border-collapse:collapse;font-size:14px;background:var(--card);border-radius:var(--radius);overflow:hidden;}
+  th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--border);}
+  th{background:var(--bg);font-weight:500;color:var(--ink-soft);font-size:12px;text-transform:uppercase;}
+  .row-actions button{font-size:12px;color:var(--coral-dark);margin-right:10px;}
+
+  .view{display:none;}
+  .view.active{display:block;}
+
+  footer{text-align:center;padding:24px;font-size:12px;color:var(--ink-soft);}
+
+  @media(max-width:600px){
+    header{padding:14px 18px;}
+    main{padding:26px 18px 60px;}
+    .hero{padding:36px 24px;}
+    .hero h1{font-size:28px;}
+    nav a{margin-left:14px;font-size:13px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo" id="logoTap">Curtain <span>Call</span></div>
+  <nav>
+    <a href="#" onclick="showView('home')">Home</a>
+    <a href="#" onclick="showView('mybookings')">My bookings</a>
+  </nav>
+</header>
+
+<!-- HOME VIEW -->
+<div class="view active" id="view-home">
+  <main>
+    <div class="hero">
+      <h1>Book your seat for the show that stays with you.</h1>
+      <p>Browse what's playing this week and reserve your seats in a couple of taps.</p>
+      <div class="search-row">
+        <input type="text" id="searchInput" placeholder="Search by show name" oninput="renderShows()">
+        <select id="genreFilter" onchange="renderShows()">
+          <option value="">All genres</option>
+          <option value="Drama">Drama</option>
+          <option value="Comedy">Comedy</option>
+          <option value="Musical">Musical</option>
+          <option value="Thriller">Thriller</option>
+        </select>
+      </div>
+    </div>
+    <section>
+      <h2>Now showing</h2>
+      <div class="grid" id="showGrid"></div>
+    </section>
+  </main>
+</div>
+
+<!-- MY BOOKINGS VIEW -->
+<div class="view" id="view-mybookings">
+  <main>
+    <h2 style="margin-bottom:18px;">My bookings</h2>
+    <div class="field" style="max-width:320px;">
+      <label>Look up by phone or email</label>
+      <input type="text" id="lookupInput" placeholder="you@example.com">
+    </div>
+    <button class="btn btn-primary" onclick="lookupBookings()">Find bookings</button>
+    <div id="lookupResults" style="margin-top:24px;"></div>
+  </main>
+</div>
+
+<!-- ADMIN VIEW -->
+<div class="view" id="view-admin">
+  <div class="admin-bar">
+    <strong>Admin panel</strong>
+    <button class="btn btn-ghost" style="color:#fff" onclick="adminLogout()">Log out</button>
+  </div>
+  <main>
+    <div class="admin-tabs">
+      <button class="admin-tab active" data-tab="dashboard" onclick="adminTab('dashboard')">Dashboard</button>
+      <button class="admin-tab" data-tab="shows" onclick="adminTab('shows')">Manage shows</button>
+      <button class="admin-tab" data-tab="bookings" onclick="adminTab('bookings')">Bookings</button>
+    </div>
+
+    <div id="admin-dashboard">
+      <div class="stat-grid">
+        <div class="stat-card"><div class="label">Total bookings</div><div class="value" id="statBookings">0</div></div>
+        <div class="stat-card"><div class="label">Seats sold</div><div class="value" id="statSeats">0</div></div>
+        <div class="stat-card"><div class="label">Revenue</div><div class="value" id="statRevenue">₹0</div></div>
+        <div class="stat-card"><div class="label">Shows live</div><div class="value" id="statShows">0</div></div>
+      </div>
+    </div>
+
+    <div id="admin-shows" style="display:none;">
+      <button class="btn btn-primary" style="margin-bottom:16px;" onclick="openShowForm()">+ Add show</button>
+      <table>
+        <thead><tr><th>Show</th><th>Genre</th><th>Timing</th><th>Price</th><th>Actions</th></tr></thead>
+        <tbody id="adminShowsTable"></tbody>
+      </table>
+    </div>
+
+    <div id="admin-bookings" style="display:none;">
+      <table>
+        <thead><tr><th>Booking ID</th><th>Show</th><th>Seats</th><th>Contact</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="adminBookingsTable"></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- ADMIN LOGIN MODAL -->
+<div class="overlay" id="adminLoginOverlay">
+  <div class="modal narrow">
+    <button class="close-x" onclick="closeOverlay('adminLoginOverlay')">&times;</button>
+    <h3 style="margin-bottom:16px;">Admin login</h3>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="adminPassInput" placeholder="Enter admin password">
+    </div>
+    <p id="adminLoginError" style="color:var(--coral-dark);font-size:13px;display:none;margin-bottom:10px;">Incorrect password. Try again.</p>
+    <button class="btn btn-primary" style="width:100%;" onclick="adminLogin()">Log in</button>
+  </div>
+</div>
+
+<!-- SHOW DETAIL MODAL -->
+<div class="overlay" id="detailOverlay">
+  <div class="modal">
+    <button class="close-x" onclick="closeOverlay('detailOverlay')">&times;</button>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<!-- SEAT SELECTION MODAL -->
+<div class="overlay" id="seatOverlay">
+  <div class="modal">
+    <button class="close-x" onclick="closeOverlay('seatOverlay')">&times;</button>
+    <h3 id="seatShowTitle" style="margin-bottom:16px;"></h3>
+    <div class="stage">Stage this way</div>
+    <div class="seat-grid" id="seatGrid"></div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--teal)"></i>Available</span>
+      <span><i class="dot" style="background:var(--coral)"></i>Selected</span>
+      <span><i class="dot" style="background:var(--mid)"></i>Booked</span>
+    </div>
+    <div class="summary-row"><span>Selected seats</span><span id="selSeatsLabel">None</span></div>
+    <div class="summary-row"><span>Total</span><span id="selTotal">₹0</span></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:16px;" onclick="proceedToCheckout()">Continue to checkout</button>
+  </div>
+</div>
+
+<!-- CHECKOUT MODAL -->
+<div class="overlay" id="checkoutOverlay">
+  <div class="modal narrow">
+    <button class="close-x" onclick="closeOverlay('checkoutOverlay')">&times;</button>
+    <h3 style="margin-bottom:16px;">Your details</h3>
+    <div class="field"><label>Full name</label><input type="text" id="custName" placeholder="Full name"></div>
+    <div class="field"><label>Phone</label><input type="text" id="custPhone" placeholder="Phone number"></div>
+    <div class="field"><label>Email</label><input type="text" id="custEmail" placeholder="you@example.com"></div>
+    <div class="summary-row"><span>Seats</span><span id="checkoutSeats"></span></div>
+    <div class="summary-row"><span>Amount payable</span><span id="checkoutTotal"></span></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:16px;" onclick="confirmBooking()">Confirm & pay</button>
+  </div>
+</div>
+
+<!-- CONFIRMATION MODAL -->
+<div class="overlay" id="confirmOverlay">
+  <div class="modal narrow">
+    <button class="close-x" onclick="closeOverlay('confirmOverlay');showView('home')">&times;</button>
+    <div class="ticket" id="ticketContent"></div>
+  </div>
+</div>
+
+<footer>Curtain Call — a simple ticketing demo.</footer>
+
+<script>
+/* ---------- Data layer (localStorage, mock — swap for a real backend later) ---------- */
+const ADMIN_PASSWORD = "admin123"; // change this before real use
+
+function loadShows(){
+  let shows = JSON.parse(localStorage.getItem('cc_shows') || 'null');
+  if(!shows){
+    shows = [
+      {id:'s1', title:'The Glass Garden', genre:'Drama', timing:'Today, 7:30 PM', price:450, rows:6, cols:8},
+      {id:'s2', title:'Laugh Riot Live', genre:'Comedy', timing:'Today, 9:00 PM', price:350, rows:6, cols:8},
+      {id:'s3', title:'Midnight Melody', genre:'Musical', timing:'Tomorrow, 6:00 PM', price:600, rows:6, cols:8},
+      {id:'s4', title:'The Last Witness', genre:'Thriller', timing:'Tomorrow, 8:30 PM', price:500, rows:6, cols:8},
+    ];
+    localStorage.setItem('cc_shows', JSON.stringify(shows));
+  }
+  return shows;
+}
+function saveShows(shows){ localStorage.setItem('cc_shows', JSON.stringify(shows)); }
+
+function loadBookings(){ return JSON.parse(localStorage.getItem('cc_bookings') || '[]'); }
+function saveBookings(b){ localStorage.setItem('cc_bookings', JSON.stringify(b)); }
+
+function bookedSeatsFor(showId){
+  return loadBookings().filter(b=>b.showId===showId && b.status!=='cancelled').flatMap(b=>b.seats);
+}
+
+/* ---------- View switching ---------- */
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  if(name==='home') renderShows();
+}
+function closeOverlay(id){ document.getElementById(id).classList.remove('active'); }
+function openOverlay(id){ document.getElementById(id).classList.add('active'); }
+
+/* ---------- Home / show grid ---------- */
+let currentShow = null;
+let selectedSeats = [];
+
+function renderShows(){
+  const shows = loadShows();
+  const q = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  const genre = document.getElementById('genreFilter')?.value || '';
+  const filtered = shows.filter(s=> s.title.toLowerCase().includes(q) && (!genre || s.genre===genre));
+  const grid = document.getElementById('showGrid');
+  grid.innerHTML = filtered.map(s=>`
+    <div class="show-card" onclick="openDetail('${s.id}')">
+      <div class="poster">${s.title}</div>
+      <div class="info">
+        <h3>${s.title}</h3>
+        <div class="meta">${s.genre} · ${s.timing}</div>
+        <div class="price-tag">From ₹${s.price}</div>
+      </div>
+    </div>`).join('') || `<div class="empty-state">No shows match that search.</div>`;
+}
+
+function openDetail(id){
+  const show = loadShows().find(s=>s.id===id);
+  currentShow = show;
+  document.getElementById('detailContent').innerHTML = `
+    <div class="poster" style="height:180px;border-radius:8px;margin-bottom:16px;background:var(--mid);display:flex;align-items:center;justify-content:center;color:#fff;">${show.title}</div>
+    <h2>${show.title}</h2>
+    <p style="color:var(--ink-soft);margin:8px 0 16px;">${show.genre} · ${show.timing}</p>
+    <p style="margin-bottom:20px;">Reserve your seats now — tickets from ₹${show.price} per seat.</p>
+    <button class="btn btn-primary" onclick="closeOverlay('detailOverlay');openSeatMap('${show.id}')">Select seats</button>
+  `;
+  openOverlay('detailOverlay');
+}
+
+/* ---------- Seat map ---------- */
+function openSeatMap(id){
+  const show = loadShows().find(s=>s.id===id);
+  currentShow = show;
+  selectedSeats = [];
+  document.getElementById('seatShowTitle').textContent = show.title + ' — ' + show.timing;
+  const booked = bookedSeatsFor(show.id);
+  const rowsArr = 'ABCDEF'.slice(0, show.rows).split('');
+  let html = '';
+  rowsArr.forEach(r=>{
+    html += `<div class="seat-row"><span class="row-label">${r}</span>`;
+    for(let c=1;c<=show.cols;c++){
+      const seatId = r+c;
+      const isBooked = booked.includes(seatId);
+      html += `<div class="seat ${isBooked?'booked':'available'}" data-seat="${seatId}" onclick="${isBooked?'':`toggleSeat('${seatId}')`}">${seatId}</div>`;
+    }
+    html += `</div>`;
+  });
+  document.getElementById('seatGrid').innerHTML = html;
+  updateSeatSummary();
+  openOverlay('seatOverlay');
+}
+
+function toggleSeat(seatId){
+  const el = document.querySelector(`.seat[data-seat="${seatId}"]`);
+  if(selectedSeats.includes(seatId)){
+    selectedSeats = selectedSeats.filter(s=>s!==seatId);
+    el.classList.remove('selected');
+  } else {
+    selectedSeats.push(seatId);
+    el.classList.add('selected');
+  }
+  updateSeatSummary();
+}
+function updateSeatSummary(){
+  document.getElementById('selSeatsLabel').textContent = selectedSeats.length ? selectedSeats.join(', ') : 'None';
+  document.getElementById('selTotal').textContent = '₹' + (selectedSeats.length * currentShow.price);
+}
+function proceedToCheckout(){
+  if(!selectedSeats.length){ alert('Pick at least one seat to continue.'); return; }
+  document.getElementById('checkoutSeats').textContent = selectedSeats.join(', ');
+  document.getElementById('checkoutTotal').textContent = '₹' + (selectedSeats.length * currentShow.price);
+  closeOverlay('seatOverlay');
+  openOverlay('checkoutOverlay');
+}
+
+/* ---------- Checkout / confirmation ---------- */
+function confirmBooking(){
+  const name = document.getElementById('custName').value.trim();
+  const phone = document.getElementById('custPhone').value.trim();
+  const email = document.getElementById('custEmail').value.trim();
+  if(!name || !phone){ alert('Please enter your name and phone number.'); return; }
+
+  const bookings = loadBookings();
+  const bookingId = 'CC' + Date.now().toString().slice(-8);
+  const total = selectedSeats.length * currentShow.price;
+  bookings.push({
+    id: bookingId, showId: currentShow.id, showTitle: currentShow.title, timing: currentShow.timing,
+    seats: [...selectedSeats], name, phone, email, amount: total, status:'confirmed', createdAt: Date.now()
+  });
+  saveBookings(bookings);
+
+  document.getElementById('ticketContent').innerHTML = `
+    <h3>Booking confirmed</h3>
+    <p style="color:var(--ink-soft);margin-top:6px;">${currentShow.title} · ${currentShow.timing}</p>
+    <div class="qr">QR CODE</div>
+    <p class="booking-id">${bookingId}</p>
+    <p style="margin-top:10px;font-size:14px;">Seats: ${selectedSeats.join(', ')}</p>
+    <p style="font-size:14px;">Amount paid: ₹${total}</p>
+  `;
+  closeOverlay('checkoutOverlay');
+  openOverlay('confirmOverlay');
+}
+
+/* ---------- My bookings lookup ---------- */
+function lookupBookings(){
+  const q = document.getElementById('lookupInput').value.trim().toLowerCase();
+  const results = loadBookings().filter(b=> b.phone.toLowerCase()===q || (b.email||'').toLowerCase()===q);
+  const el = document.getElementById('lookupResults');
+  if(!results.length){ el.innerHTML = `<div class="empty-state">No bookings found for that phone or email.</div>`; return; }
+  el.innerHTML = results.map(b=>`
+    <div class="show-card" style="cursor:default;margin-bottom:14px;">
+      <div class="info">
+        <h3>${b.showTitle}</h3>
+        <div class="meta">${b.timing} · Seats: ${b.seats.join(', ')}</div>
+        <div class="price-tag">₹${b.amount} · ${b.status}</div>
+        <p style="font-family:monospace;font-size:12px;margin-top:6px;color:var(--ink-soft);">${b.id}</p>
+      </div>
+    </div>`).join('');
+}
+
+/* ---------- Admin: 3-tap unlock ---------- */
+let tapCount = 0, tapTimer = null;
+document.getElementById('logoTap').addEventListener('click', ()=>{
+  tapCount++;
+  clearTimeout(tapTimer);
+  tapTimer = setTimeout(()=>{ tapCount = 0; }, 1500);
+  if(tapCount >= 3){
+    tapCount = 0;
+    clearTimeout(tapTimer);
+    if(sessionStorage.getItem('cc_admin')==='true'){ showView('admin'); renderAdmin(); }
+    else openOverlay('adminLoginOverlay');
+  }
+});
+function adminLogin(){
+  const val = document.getElementById('adminPassInput').value;
+  if(val === ADMIN_PASSWORD){
+    sessionStorage.setItem('cc_admin','true');
+    document.getElementById('adminLoginError').style.display='none';
+    document.getElementById('adminPassInput').value='';
+    closeOverlay('adminLoginOverlay');
+    showView('admin');
+    renderAdmin();
+  } else {
+    document.getElementById('adminLoginError').style.display='block';
+  }
+}
+function adminLogout(){
+  sessionStorage.removeItem('cc_admin');
+  showView('home');
+}
+function adminTab(tab){
+  document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector(`.admin-tab[data-tab="${tab}"]`).classList.add('active');
+  ['dashboard','shows','bookings'].forEach(t=>{
+    document.getElementById('admin-'+t).style.display = (t===tab) ? 'block' : 'none';
+  });
+}
+function renderAdmin(){
+  const shows = loadShows();
+  const bookings = loadBookings().filter(b=>b.status!=='cancelled');
+  document.getElementById('statBookings').textContent = bookings.length;
+  document.getElementById('statSeats').textContent = bookings.reduce((n,b)=>n+b.seats.length,0);
+  document.getElementById('statRevenue').textContent = '₹' + bookings.reduce((n,b)=>n+b.amount,0);
+  document.getElementById('statShows').textContent = shows.length;
+
+  document.getElementById('adminShowsTable').innerHTML = shows.map(s=>`
+    <tr><td>${s.title}</td><td>${s.genre}</td><td>${s.timing}</td><td>₹${s.price}</td>
+    <td class="row-actions"><button onclick="deleteShow('${s.id}')">Delete</button></td></tr>`).join('');
+
+  document.getElementById('adminBookingsTable').innerHTML = loadBookings().map(b=>`
+    <tr><td>${b.id}</td><td>${b.showTitle}</td><td>${b.seats.join(', ')}</td>
+    <td>${b.name}<br><span style="color:var(--ink-soft);font-size:12px;">${b.phone}</span></td>
+    <td>₹${b.amount}</td><td>${b.status}</td>
+    <td class="row-actions">${b.status!=='cancelled'?`<button onclick="cancelBooking('${b.id}')">Cancel</button>`:''}</td></tr>`).join('');
+}
+function deleteShow(id){
+  if(!confirm('Delete this show?')) return;
+  saveShows(loadShows().filter(s=>s.id!==id));
+  renderAdmin();
+}
+function cancelBooking(id){
+  const bookings = loadBookings();
+  const b = bookings.find(x=>x.id===id);
+  if(b) b.status = 'cancelled';
+  saveBookings(bookings);
+  renderAdmin();
+}
+function openShowForm(){
+  const title = prompt('Show name:'); if(!title) return;
+  const genre = prompt('Genre (Drama/Comedy/Musical/Thriller):', 'Drama') || 'Drama';
+  const timing = prompt('Timing (e.g. "Today, 7:00 PM"):', 'Today, 7:00 PM') || '';
+  const price = parseInt(prompt('Price per seat (₹):', '400')) || 400;
+  const shows = loadShows();
+  shows.push({id:'s'+Date.now(), title, genre, timing, price, rows:6, cols:8});
+  saveShows(shows);
+  renderAdmin();
+}
+
+/* ---------- Init ---------- */
+renderShows();
+</script>
+</body>
+</html>
